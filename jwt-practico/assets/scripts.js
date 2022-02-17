@@ -9,11 +9,7 @@ $("#jwt-formulario").submit(async(event) => {
     const password = document.getElementById("jwt-password").value;
     //guardar el token en JWT. Necesita un AWAIT Y UN ASYNC (a la función padres)
     const JWT = await postData(email, password);
-    //dispara la petición con el token en el header. Retorna la data de petición
-    const resultado = await getPosts(JWT);
-    //dispara la función que rellena la tabla con los datos obtenidos de la petición
-    llenadoTabla(resultado)
-    toggleFormTabla("jwt-div-form","jwt-tabla" )
+    getPosts(JWT);
 
 });
 //4. Crear llamado a Endpoint
@@ -30,9 +26,9 @@ const postData = async(emailIng, passwordIng) => {
         //Responde con promesa. Por eso, tenemos que anteponer AWAIT
         //desestructuramos el objeto para rescatar solo su valor. O también podemos acceder al objeto "token" y acceder a su atributo "token"
         const {token} = await response.json();
-        
+        localStorage.setItem('jwt-token', token); //-----> paso 5. Almacena el token en local storage
         return token
-
+ 
     } catch(e){
 
     };
@@ -55,7 +51,11 @@ const getPosts = async(JWT) => {
             }
         });
         const data = await response.json();
-        return data;
+        if (data){
+            llenadoTabla(data);
+            toggleFormTabla("jwt-div-form","jwt-tabla" );
+        }
+        //return data;
     }catch(e){
         console.log(`Error ${e}`)
     };
@@ -79,7 +79,25 @@ const llenadoTabla = (datos) => {
 //4.1 Añadir un identificador al div que 
 //jwt-div-form
 const toggleFormTabla = (formulario,tabla) => {
-    //Al indicarlos juntos, intercala el display "none" y display por default en html
+    //Al indicarlos juntos, alterna la visibilidad
     $(`#${formulario}`).toggle();
     $(`#${tabla}`).toggle();
 }
+//--- Persistir JWT -------------------------------
+//5. Guardar el JWT en localstorage, después de hacer login (localstorage es un objeto)
+//6. AL momento de cargar nuestra pagina revisar si existe un JWT, de existir debemos mostrar la tabla y ocultar el formulario
+//7 Controlar la vigencia del token. Es decir, Mostrar el formulario si el token expira.
+//--------------------------------------------
+//6.
+const inicio = async() => {
+    const token = localStorage.getItem("jwt-token");
+    if(token){
+        //dispara la petición con el token en el header. Retorna la data de petición
+        //const resultado = await getPosts(token);
+        getPosts(token)
+        //dispara la función que rellena la tabla con los datos obtenidos de la petición
+        
+    };
+};
+//Comprueba si existe token en localstorage
+inicio();
